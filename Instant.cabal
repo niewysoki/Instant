@@ -1,0 +1,76 @@
+cabal-version:      2.4
+name:               Instant
+version:            0.1.0.0
+synopsis:
+
+-- A longer description of the package.
+-- description:
+homepage:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+license:            NONE
+author:             Franciszek Hnatów
+maintainer:         franciszek.hnatow@gmail.com
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+library
+    exposed-modules:
+        Instant.Jvm.Transpiler
+        Instant.Grammar.ParInstant
+        Instant.Grammar.ErrM
+
+    -- Modules included in this library but not exported.
+    other-modules:
+        Instant.Utils
+        Instant.Grammar.AbsInstant
+        Instant.Grammar.LexInstant
+        Instant.Grammar.PrintInstant
+        Instant.Jvm.Instructions
+
+    -- LANGUAGE extensions used by modules in this package.
+    other-extensions:
+        FlexibleInstances
+        DeriveTraversable
+        GeneralizedNewtypeDeriving
+        LambdaCase
+        PatternSynonyms
+
+    build-depends:
+        base ^>=4.15.1.0,
+        array ^>=0.5.4.0,
+        mtl ^>=2.2.2,
+        containers ^>=0.6.4.1,
+        text ^>=1.2.5.0
+
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+executable insc_jvm
+    main-is:          Main.hs
+
+    -- LANGUAGE extensions used by modules in this package.
+    other-extensions:
+        PatternSynonyms
+
+    build-depends:
+        Instant,
+        base ^>=4.15.1.0,
+        text ^>=1.2.5.0,
+        filepath ^>=1.4.2.1,
+        directory ^>=1.3.6.2,
+        process ^>=1.6.13.2
+
+    hs-source-dirs:   jvm
+    default-language: Haskell2010
+
+test-suite Instant-test
+    default-language: Haskell2010
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          MyLibTest.hs
+    build-depends:    base ^>=4.15.1.0
