@@ -21,16 +21,18 @@ extra-source-files: CHANGELOG.md
 library
     exposed-modules:
         Instant.Jvm.Transpiler
+        Instant.Llvm.Transpiler
         Instant.Grammar.ParInstant
         Instant.Grammar.ErrM
 
     -- Modules included in this library but not exported.
     other-modules:
-        Instant.Utils
+        Instant.Common
         Instant.Grammar.AbsInstant
         Instant.Grammar.LexInstant
         Instant.Grammar.PrintInstant
         Instant.Jvm.Instructions
+        Instant.Llvm.Instructions
 
     -- LANGUAGE extensions used by modules in this package.
     other-extensions:

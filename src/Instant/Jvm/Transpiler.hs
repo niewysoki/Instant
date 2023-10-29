@@ -8,10 +8,10 @@ import qualified Data.Map as M
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
 import qualified Data.Text.Lazy.Builder as TLB
+import Instant.Common (Emit (emit), withIndent)
 import Instant.Grammar.AbsInstant (BNFC'Position, Exp, Exp' (..), Ident, Program, Program' (Prog), Stmt, Stmt' (..))
 import Instant.Grammar.ErrM (Err)
-import Instant.Jvm.Instructions (BinOp (..), Emit (..), Instruction (..), Loc, commutative)
-import Instant.Utils (withIndent)
+import Instant.Jvm.Instructions (BinOp (..), Instruction (..), Loc, commutative)
 
 type Store = M.Map Ident Loc
 
@@ -63,11 +63,11 @@ instance Transp Program where
                     ]
 
 instance Transp Stmt where
-    transpile (SExp pos exp) = do
-        (stack, code) <- transpile exp
+    transpile (SExp _ x) = do
+        (stack, code) <- transpile x
         return (stack, code <> emit IPrint)
-    transpile (SAss pos ident exp) = do
-        (stack, code) <- transpile exp
+    transpile (SAss _ ident x) = do
+        (stack, code) <- transpile x
         loc <- getLoc ident (newLoc ident)
         return (stack, code <> emit (IStore loc))
 
@@ -76,13 +76,13 @@ instance Transp Exp where
     transpile (ExpMul pos x y) = transpileBinOp OpMul pos x y
     transpile (ExpSub pos x y) = transpileBinOp OpSub pos x y
     transpile (ExpDiv pos x y) = transpileBinOp OpDiv pos x y
-    transpile (ExpLit pos value) = return (1, emit (IConst $ fromInteger value))
+    transpile (ExpLit _ value) = return (1, emit (IConst $ fromInteger value))
     transpile (ExpVar pos ident) = do
         loc <- getLoc ident (noLoc ident pos)
         return (1, emit (ILoad loc))
 
 transpileBinOp :: BinOp -> BNFC'Position -> Exp -> Exp -> Transpiler (Int, TLB.Builder)
-transpileBinOp op pos left right = do
+transpileBinOp op _ left right = do
     (leftStack, leftCode) <- transpile left
     (rightStack, rightCode) <- transpile right
     let stack = max (1 + min leftStack rightStack) (max leftStack rightStack)
