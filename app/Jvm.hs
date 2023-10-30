@@ -1,21 +1,16 @@
 module Main where
 
-import Common (genericMain, syserr)
+import Common (genericMain, getFileAndDirOrFail, syserr)
 import Control.Monad (unless)
 import qualified Data.Text.IO as TIO
 import qualified Instant.Jvm.Transpiler as Transpiler
-import System.Directory (doesFileExist)
 import System.Exit (ExitCode (ExitSuccess), exitFailure, exitSuccess)
-import System.FilePath (dropExtension, replaceExtension, takeDirectory, takeFileName)
+import System.FilePath (replaceExtension)
 import System.Process (runCommand, waitForProcess)
 
 compileFile :: String -> IO ()
 compileFile filename = do
-    fileExists <- doesFileExist filename
-    unless fileExists (syserr $ "File not found: '" ++ filename ++ "'")
-
-    let name = dropExtension $ takeFileName filename
-    let dir = takeDirectory filename
+    (dir, name) <- getFileAndDirOrFail filename
     let jasmineFile = replaceExtension filename ".j"
     let jasmineCmd = "java -jar ./lib/jasmin.jar -d " ++ dir ++ " " ++ jasmineFile
 

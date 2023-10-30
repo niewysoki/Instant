@@ -2,7 +2,7 @@
 
 module Instant.Llvm.Instructions where
 
-import qualified Data.Text.Lazy.Builder as TLB
+import Data.Text.Lazy.Builder (fromString)
 import Instant.Common (Emit (emit), withIndent)
 
 newtype Register = RegNum Int
@@ -39,4 +39,4 @@ instance Show Instruction where
     show (IBinOp op reg x y) = show reg ++ " = " ++ show op ++ " " ++ show x ++ ", " ++ show y
 
 instance Emit Instruction where
-    emit val = TLB.fromString $ withIndent $ show val ++ "\n"
+    emit val = fromString $ withIndent $ show val ++ "\n"

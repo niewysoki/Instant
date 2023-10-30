@@ -15,6 +15,7 @@
 
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Instant.Grammar.ErrM where
 
@@ -29,7 +30,9 @@ import Control.Monad       (MonadFail(..))
 -- | Error monad with 'String' error messages.
 type Err = Either String
 
+pattern Bad :: a -> Either a b
 pattern Bad msg = Left msg
+pattern Ok :: b -> Either a b
 pattern Ok  a   = Right a
 
 #if __GLASGOW_HASKELL__ >= 808

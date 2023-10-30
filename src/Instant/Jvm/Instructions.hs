@@ -1,7 +1,7 @@
 module Instant.Jvm.Instructions where
 
 import Data.Int (Int32)
-import qualified Data.Text.Lazy.Builder as TLB
+import Data.Text.Lazy.Builder (fromString)
 import Instant.Common (Emit (emit), withIndent)
 
 type Loc = Int
@@ -52,4 +52,4 @@ instance Show Instruction where
         max_two_bytes = 32767 :: Int32
 
 instance Emit Instruction where
-    emit val = TLB.fromString $ withIndent $ show val ++ "\n"
+    emit val = fromString $ withIndent $ show val ++ "\n"
