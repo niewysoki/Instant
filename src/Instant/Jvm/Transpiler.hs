@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Instant.Jvm.Transpiler where
+module Instant.Jvm.Transpiler (run) where
 
 import Control.Monad.State (StateT, evalStateT, gets, modify)
 import Data.Foldable (foldl')
@@ -11,19 +11,14 @@ import qualified Data.Text.Lazy.Builder as TLB
 import Instant.Common (Emit (emit), withIndent)
 import Instant.Grammar.AbsInstant (BNFC'Position, Exp, Exp' (..), Ident, Program, Program' (Prog), Stmt, Stmt' (..))
 import Instant.Grammar.ErrM (Err)
+import Instant.Grammar.ParInstant (myLexer, pProgram)
 import Instant.Jvm.Instructions (BinOp (..), Instruction (..), Loc, commutative)
 
-type Store = M.Map Ident Loc
-
-type Transpiler x = StateT Store Err x
-
-class Transp x where
-    transpile :: x -> Transpiler (Int, TLB.Builder)
-
-transpileProgramToJasmin :: String -> Program -> Err Text
-transpileProgramToJasmin name prog = do
-    x <- evalStateT (transpile prog) M.empty
-    return $ toStrict $ TLB.toLazyText $ prefix <> snd x
+run :: String -> String -> Err Text
+run name text = do
+    ast <- pProgram . myLexer $ text
+    (_, main) <- evalStateT (transpile ast) M.empty
+    return $ toStrict $ TLB.toLazyText $ prefix <> main
   where
     prefix :: TLB.Builder
     prefix =
@@ -40,6 +35,13 @@ transpileProgramToJasmin name prog = do
                 , ".end method"
                 , ""
                 ]
+
+type Store = M.Map Ident Loc
+
+type Transpiler x = StateT Store Err x
+
+class Transp x where
+    transpile :: x -> Transpiler (Int, TLB.Builder)
 
 instance Transp Program where
     transpile (Prog _ stmts) = do

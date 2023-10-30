@@ -57,6 +57,9 @@ library
 executable insc_jvm
     main-is:          Jvm.hs
 
+    other-modules:
+        Common
+
     -- LANGUAGE extensions used by modules in this package.
     other-extensions:
         PatternSynonyms
@@ -76,6 +79,9 @@ executable insc_jvm
 
 executable insc_llvm
     main-is:          Llvm.hs
+
+    other-modules:
+        Common
 
     -- LANGUAGE extensions used by modules in this package.
     other-extensions:

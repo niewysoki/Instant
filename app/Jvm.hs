@@ -2,46 +2,36 @@
 
 module Main where
 
+import Common (genericMain, syserr)
 import Control.Monad (unless)
-import Data.Text (Text)
 import qualified Data.Text.IO as TIO
-import Instant.Grammar.ErrM (Err, pattern Bad, pattern Ok)
-import Instant.Grammar.ParInstant (myLexer, pProgram)
-import Instant.Jvm.Transpiler (transpileProgramToJasmin)
-import System.Directory (doesDirectoryExist, doesFileExist)
-import System.Environment (getArgs)
+import Instant.Grammar.ErrM (pattern Bad, pattern Ok)
+import qualified Instant.Jvm.Transpiler as Transpiler
+import System.Directory (doesFileExist)
 import System.Exit (ExitCode (ExitSuccess), exitFailure, exitSuccess)
 import System.FilePath (dropExtension, replaceExtension, takeDirectory, takeFileName)
 import System.Process (runCommand, waitForProcess)
 
-run :: String -> String -> IO Text
-run name text = case pProgram . myLexer $ text of
-    Bad msg -> fail $ "PARSER ERROR: " ++ msg
-    Ok ast -> case transpileProgramToJasmin name ast of
-        Bad msg -> fail $ "COMPILATION ERROR: " ++ msg
-        Ok code -> return code
-
 compileFile :: String -> IO ()
 compileFile filename = do
     fileExists <- doesFileExist filename
-    unless fileExists (fail $ "File not found: '" ++ filename ++ "'")
+    unless fileExists (syserr $ "File not found: '" ++ filename ++ "'")
 
     let name = dropExtension $ takeFileName filename
-
-    contents <- readFile filename
-    jasmineCode <- run name contents
-
     let dir = takeDirectory filename
     let jasmineFile = replaceExtension filename ".j"
-
-    TIO.writeFile jasmineFile jasmineCode
-
     let jasmineCmd = "java -jar ./lib/jasmin.jar -d " ++ dir ++ " " ++ jasmineFile
-    process <- runCommand jasmineCmd
-    code <- waitForProcess process
 
-    unless (code == ExitSuccess) (fail $ "Jasmin failed with code: " ++ show code)
-    exitSuccess
+    contents <- readFile filename
+    let maybeJasmineCode = Transpiler.run name contents
+    case maybeJasmineCode of
+        Bad msg -> syserr msg
+        Ok jasmineCode -> do
+            TIO.writeFile jasmineFile jasmineCode
+            process <- runCommand jasmineCmd
+            exitCode <- waitForProcess process
+            unless (exitCode == ExitSuccess) (syserr $ "Jasmin failed with code: " ++ show exitCode)
+            exitSuccess
 
 usage :: IO ()
 usage = do
@@ -55,9 +45,4 @@ usage = do
     exitFailure
 
 main :: IO ()
-main = do
-    args <- getArgs
-    case args of
-        ["--help"] -> usage
-        [f] -> compileFile f
-        _ -> exitFailure
+main = genericMain compileFile usage (syserr "Invalid or no arguments provided")
