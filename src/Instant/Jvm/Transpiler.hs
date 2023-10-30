@@ -3,26 +3,40 @@
 module Instant.Jvm.Transpiler (run) where
 
 import Control.Monad.State (StateT, evalStateT, gets, modify)
-import Data.Foldable (foldl')
+import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
-import qualified Data.Text.Lazy.Builder as TLB
+import Data.Text.Lazy.Builder as TLB (Builder, fromString, toLazyText)
 import Instant.Common (Emit (emit), withIndent)
-import Instant.Grammar.AbsInstant (BNFC'Position, Exp, Exp' (..), Ident, Program, Program' (Prog), Stmt, Stmt' (..))
+import Instant.Grammar.AbsInstant (
+    BNFC'Position,
+    Exp,
+    Exp' (..),
+    Ident,
+    Program,
+    Program' (Prog),
+    Stmt,
+    Stmt' (SAss, SExp),
+ )
 import Instant.Grammar.ErrM (Err)
 import Instant.Grammar.ParInstant (myLexer, pProgram)
-import Instant.Jvm.Instructions (BinOp (..), Instruction (..), Loc, commutative)
+import Instant.Jvm.Instructions (
+    BinOp (..),
+    Instruction (..),
+    Loc,
+    commutative,
+ )
 
 run :: String -> String -> Err Text
 run name text = do
     ast <- pProgram . myLexer $ text
     (_, main) <- evalStateT (transpile ast) M.empty
-    return $ toStrict $ TLB.toLazyText $ prefix <> main
+    return $ toStrict $ toLazyText $ prefix <> main
   where
-    prefix :: TLB.Builder
+    prefix :: Builder
     prefix =
-        TLB.fromString $
+        fromString $
             unlines
                 [ ".class public " ++ name
                 , ".super java/lang/Object"
@@ -41,22 +55,22 @@ type Store = M.Map Ident Loc
 type Transpiler x = StateT Store Err x
 
 class Transp x where
-    transpile :: x -> Transpiler (Int, TLB.Builder)
+    transpile :: x -> Transpiler (Int, Builder)
 
 instance Transp Program where
     transpile (Prog _ stmts) = do
         results <- mapM transpile stmts
         locals <- gets M.size
-        let stack = foldl' max 0 $ map fst results
-        let code = foldl' (<>) (TLB.fromString "") $ map snd results
+        let stack = L.foldl' max 0 $ map fst results
+        let code = L.foldl' (<>) (fromString "") $ map snd results
         return (0, mainHeader stack locals <> code <> mainFooter)
       where
-        mainFooter :: TLB.Builder
-        mainFooter = TLB.fromString $ withIndent "return\n" ++ ".end method\n"
+        mainFooter :: Builder
+        mainFooter = fromString $ withIndent "return\n" ++ ".end method\n"
 
-        mainHeader :: Int -> Int -> TLB.Builder
+        mainHeader :: Int -> Int -> Builder
         mainHeader stack locals =
-            TLB.fromString $
+            fromString $
                 unlines
                     [ ".method public static main([Ljava/lang/String;)V"
                     , withIndent ".limit stack " ++ show (max stack 1)
@@ -83,7 +97,7 @@ instance Transp Exp where
         loc <- getLoc ident (noLoc ident pos)
         return (1, emit (ILoad loc))
 
-transpileBinOp :: BinOp -> BNFC'Position -> Exp -> Exp -> Transpiler (Int, TLB.Builder)
+transpileBinOp :: BinOp -> BNFC'Position -> Exp -> Exp -> Transpiler (Int, Builder)
 transpileBinOp op _ left right = do
     (leftStack, leftCode) <- transpile left
     (rightStack, rightCode) <- transpile right
