@@ -56,15 +56,15 @@ instance Show Instruction where
 instance Emit Instruction where
     emit val = fromString $ withIndent $ show val ++ "\n"
 
-data StaticCode
-    = SCClassHeader String
-    | SCDefaultConstructor
-    | SCMainHeader Int Int
-    | SCMainFooter
+data ComplexInstruction
+    = CIClassHeader String
+    | CIDefaultConstructor
+    | CIMainHeader Int Int
+    | CIMainFooter
 
-instance Emit StaticCode where
-    emit (SCClassHeader name) = fromString $ unlines [".class public " ++ name, ".super java/lang/Object"]
-    emit SCDefaultConstructor =
+instance Emit ComplexInstruction where
+    emit (CIClassHeader name) = fromString $ unlines [".class public " ++ name, ".super java/lang/Object"]
+    emit CIDefaultConstructor =
         fromString $
             unlines
                 [ ".method public <init>()V"
@@ -76,7 +76,7 @@ instance Emit StaticCode where
                 , ".end method"
                 , ""
                 ]
-    emit (SCMainHeader stack locals) =
+    emit (CIMainHeader stack locals) =
         fromString $
             unlines
                 [ ".method public static main([Ljava/lang/String;)V"
@@ -84,4 +84,4 @@ instance Emit StaticCode where
                 , withIndent ".limit locals " ++ show (max locals 1)
                 , ""
                 ]
-    emit SCMainFooter = fromString $ unlines [withIndent "return", ".end method"]
+    emit CIMainFooter = fromString $ unlines [withIndent "return", ".end method"]

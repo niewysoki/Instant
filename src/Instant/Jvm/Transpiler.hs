@@ -24,9 +24,9 @@ import Instant.Grammar.ErrM (Err)
 import Instant.Grammar.ParInstant (myLexer, pProgram)
 import Instant.Jvm.Instructions (
     BinOp (..),
+    ComplexInstruction (..),
     Instruction (..),
     Loc,
-    StaticCode (..),
     commutative,
  )
 
@@ -46,7 +46,7 @@ run :: String -> String -> Err Text
 run name text = do
     ast <- pProgram . myLexer $ text
     code <- evalStateT (transpile ast) M.empty
-    return $ toStrict $ toLazyText $ emit (SCClassHeader name) <> code
+    return $ toStrict $ toLazyText $ emit (CIClassHeader name) <> code
 
 instance Transp Program where
     transpile (Prog _ stmts) = do
@@ -54,7 +54,7 @@ instance Transp Program where
         locals <- gets M.size
         let stack = L.foldl' max 0 $ fst <$> results
             code = L.foldl' (<>) (fromString "") $ snd <$> results
-        return $ emit SCDefaultConstructor <> emit (SCMainHeader stack locals) <> code <> emit SCMainFooter
+        return $ emit CIDefaultConstructor <> emit (CIMainHeader stack locals) <> code <> emit CIMainFooter
 
 instance Transp Stmt where
     transpile (SExp _ x) = do
@@ -81,11 +81,13 @@ transpileBinOp op left right = do
     (rightStack, rightCode) <- transpile right
     let stack = max (1 + min leftStack rightStack) (max leftStack rightStack)
         opCode = emit (IBinOp op)
+        -- if the operation is commutative there is
+        -- no need to perform swap when changing order of operation
+        opSwap = if commutative op then fromString "" else emit ISwap
+    -- if we have a "bigger" operation in the right subtree
+    -- then by reordering them we save 1 stack height
     if leftStack < rightStack
-        then
-            if commutative op
-                then return (stack, rightCode <> leftCode <> opCode)
-                else return (stack, rightCode <> leftCode <> emit ISwap <> opCode)
+        then return (stack, rightCode <> leftCode <> opSwap <> opCode)
         else return (stack, leftCode <> rightCode <> opCode)
 
 getLoc :: Ident -> Transpiler Loc -> Transpiler Loc
