@@ -12,7 +12,6 @@ transpileFile filename = do
         llvmCommand = "llvm-as -o " ++ bcFile ++ " " ++ llFile
     contents <- readFile filename
     let mbCode = Transpiler.run contents
-    print mbCode
     processCodeWithCommand mbCode llFile llvmCommand (syserr . ("llvm-as failed with code: " ++) . show)
 
 main :: IO ()
