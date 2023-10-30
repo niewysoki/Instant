@@ -1,11 +1,8 @@
-{-# LANGUAGE PatternSynonyms #-}
-
 module Main where
 
 import Common (genericMain, syserr)
 import Control.Monad (unless)
 import qualified Data.Text.IO as TIO
-import Instant.Grammar.ErrM (pattern Bad, pattern Ok)
 import qualified Instant.Jvm.Transpiler as Transpiler
 import System.Directory (doesFileExist)
 import System.Exit (ExitCode (ExitSuccess), exitFailure, exitSuccess)
@@ -25,8 +22,8 @@ compileFile filename = do
     contents <- readFile filename
     let maybeJasmineCode = Transpiler.run name contents
     case maybeJasmineCode of
-        Bad msg -> syserr msg
-        Ok jasmineCode -> do
+        Left msg -> syserr msg
+        Right jasmineCode -> do
             TIO.writeFile jasmineFile jasmineCode
             process <- runCommand jasmineCmd
             exitCode <- waitForProcess process

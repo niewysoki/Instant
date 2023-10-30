@@ -22,8 +22,6 @@ library
     exposed-modules:
         Instant.Jvm.Transpiler
         Instant.Llvm.Transpiler
-        Instant.Grammar.ParInstant
-        Instant.Grammar.ErrM
 
     -- Modules included in this library but not exported.
     other-modules:
@@ -31,6 +29,8 @@ library
         Instant.Grammar.AbsInstant
         Instant.Grammar.LexInstant
         Instant.Grammar.PrintInstant
+        Instant.Grammar.ParInstant
+        Instant.Grammar.ErrM
         Instant.Jvm.Instructions
         Instant.Llvm.Instructions
 
@@ -61,8 +61,7 @@ executable insc_jvm
         Common
 
     -- LANGUAGE extensions used by modules in this package.
-    other-extensions:
-        PatternSynonyms
+    -- other-extensions:
 
     build-depends:
         Instant,
@@ -84,8 +83,7 @@ executable insc_llvm
         Common
 
     -- LANGUAGE extensions used by modules in this package.
-    other-extensions:
-        PatternSynonyms
+    -- other-extensions:
 
     build-depends:
         Instant,
