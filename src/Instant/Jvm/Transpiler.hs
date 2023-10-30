@@ -81,12 +81,12 @@ transpileBinOp op left right = do
     (rightStack, rightCode) <- transpile right
     let stack = max (1 + min leftStack rightStack) (max leftStack rightStack)
         opCode = emit (IBinOp op)
-    if leftStack > rightStack
-        then return (stack, leftCode <> rightCode <> opCode)
-        else
+    if leftStack < rightStack
+        then
             if commutative op
                 then return (stack, rightCode <> leftCode <> opCode)
                 else return (stack, rightCode <> leftCode <> emit ISwap <> opCode)
+        else return (stack, leftCode <> rightCode <> opCode)
 
 getLoc :: Ident -> Transpiler Loc -> Transpiler Loc
 getLoc ident onFail = do
