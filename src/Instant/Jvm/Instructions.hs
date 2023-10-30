@@ -53,3 +53,33 @@ instance Show Instruction where
 
 instance Emit Instruction where
     emit val = fromString $ withIndent $ show val ++ "\n"
+
+data StaticCode
+    = SCClassHeader String
+    | SCDefaultConstructor
+    | SCMainHeader Int Int
+    | SCMainFooter
+
+instance Emit StaticCode where
+    emit (SCClassHeader name) = fromString $ unlines [".class public " ++ name, ".super java/lang/Object"]
+    emit SCDefaultConstructor =
+        fromString $
+            unlines
+                [ ".method public <init>()V"
+                , withIndent ".limit stack 1"
+                , withIndent ".limit locals 1"
+                , withIndent "aload_0"
+                , withIndent "invokespecial java/lang/Object/<init>()V"
+                , withIndent "return"
+                , ".end method"
+                , ""
+                ]
+    emit (SCMainHeader stack locals) =
+        fromString $
+            unlines
+                [ ".method public static main([Ljava/lang/String;)V"
+                , withIndent ".limit stack " ++ show (max stack 1)
+                , withIndent ".limit locals " ++ show (max locals 1)
+                , ""
+                ]
+    emit SCMainFooter = fromString $ unlines [withIndent "return", ".end method"]
