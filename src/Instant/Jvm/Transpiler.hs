@@ -59,7 +59,7 @@ instance Transp Program where
 instance Transp Stmt where
     transpile (SExp _ x) = do
         (stack, code) <- transpile x
-        return (stack, code <> emit IPrint)
+        return (stack + 1, code <> emit IPrintLoadFunc <> emit ISwap <> emit IPrint)
     transpile (SAss _ ident x) = do
         (stack, code) <- transpile x
         loc <- getLoc ident (newLoc ident)

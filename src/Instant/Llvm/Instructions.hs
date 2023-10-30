@@ -8,10 +8,10 @@ import Instant.Common (Emit (emit), withIndent)
 newtype Register = RegNum Int
 
 instance Show Register where
-    show r = "%R." ++ show r
+    show (RegNum num) = "%R." ++ show num
 
 nextRegister :: Register -> Register
-nextRegister (RegNum x) = RegNum $ x + 1
+nextRegister (RegNum num) = RegNum $ num + 1
 
 data CallParam = Const Int | Reg Register
 
@@ -54,10 +54,10 @@ instance Emit StaticCode where
         fromString $
             unlines
                 [ "declare i32 @printf(i8*, ...)"
-                , "@dnl = internal constant [4 x i8] c\"%d\\0A\\00\""
+                , "@fmt = internal constant [4 x i8] c\"%d\\0A\\00\""
                 , ""
-                , "define void @printInt(i32 %x) {"
-                , withIndent "%t0 = getelementptr [4 x i8], [4 x i8]* @dnl, i32 0, i32 0"
+                , "define void @internalPrintInt(i32 %x) {"
+                , withIndent "%t0 = getelementptr [4 x i8], [4 x i8]* @fmt, i32 0, i32 0"
                 , withIndent "call i32 (i8*, ...) @printf(i8* %t0, i32 %x) "
                 , withIndent "ret void"
                 , "}"

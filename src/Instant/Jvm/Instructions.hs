@@ -13,6 +13,7 @@ data Instruction
     | IPrint
     | IBinOp BinOp
     | ISwap
+    | IPrintLoadFunc
 
 data BinOp = OpAdd | OpSub | OpDiv | OpMul
 
@@ -28,7 +29,8 @@ instance Show BinOp where
     show OpMul = "imul"
 
 instance Show Instruction where
-    show IPrint = "invokestatic Runtime/printInt(I)V"
+    show IPrintLoadFunc = "getstatic java/lang/System/out Ljava/io/PrintStream;"
+    show IPrint = "invokevirtual java/io/PrintStream/println(I)V"
     show ISwap = "swap"
     show (IBinOp op) = show op
     show (ILoad loc)

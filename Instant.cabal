@@ -22,6 +22,7 @@ library
     exposed-modules:
         Instant.Jvm.Transpiler
         Instant.Llvm.Transpiler
+        Instant.Grammar.ErrM
 
     -- Modules included in this library but not exported.
     other-modules:
@@ -30,7 +31,6 @@ library
         Instant.Grammar.LexInstant
         Instant.Grammar.PrintInstant
         Instant.Grammar.ParInstant
-        Instant.Grammar.ErrM
         Instant.Jvm.Instructions
         Instant.Llvm.Instructions
 
@@ -97,10 +97,3 @@ executable insc_llvm
     default-language: Haskell2010
     ghc-options:
         -Wall
-
-test-suite Instant-test
-    default-language: Haskell2010
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          MyLibTest.hs
-    build-depends:    base ^>=4.15.1.0
