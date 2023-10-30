@@ -14,14 +14,13 @@ compileFile filename = do
     let mbCode = Transpiler.run contents
     processCodeWithCommand mbCode llFile llvmCommand (syserr . ("llvm-as failed with code: " ++) . show)
 
-usage :: String
-usage =
-    unlines
-        [ "Instant LLVM compiler."
-        , "Usage: Call with one of the following argument combinations:"
-        , "  --help         Display this help message."
-        , "  (file)         Compile content of the input file into .ll and .bc files in the same directory."
-        ]
-
 main :: IO ()
-main = genericMain compileFile usage (syserr "Invalid or no arguments provided")
+main = genericMain compileFile usage
+  where
+    usage =
+        unlines
+            [ "Instant LLVM compiler."
+            , "Usage: Call with one of the following argument combinations:"
+            , "  --help         Display this help message."
+            , "  (file)         Compile content of the input file into .ll and .bc files in the same directory."
+            ]

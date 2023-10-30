@@ -13,14 +13,13 @@ compileFile filename = do
     let mbCode = Transpiler.run name contents
     processCodeWithCommand mbCode jasmineFile jasmineCmd (syserr . ("Jasmin failed with code: " ++) . show)
 
-usage :: String
-usage =
-    unlines
-        [ "Instant JVM compiler."
-        , "Usage: Call with one of the following argument combinations:"
-        , "  --help         Display this help message."
-        , "  (file)         Compile content of the file into .j and .class files in the file's directory."
-        ]
-
 main :: IO ()
-main = genericMain compileFile usage (syserr "Invalid or no arguments provided")
+main = genericMain compileFile usage
+  where
+    usage =
+        unlines
+            [ "Instant JVM compiler."
+            , "Usage: Call with one of the following argument combinations:"
+            , "  --help         Display this help message."
+            , "  (file)         Compile content of the file into .j and .class files in the file's directory."
+            ]

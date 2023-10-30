@@ -12,13 +12,13 @@ import System.FilePath (dropExtension, takeDirectory, takeFileName)
 import System.IO (hPutStrLn, stderr)
 import System.Process (runCommand, waitForProcess)
 
-genericMain :: (String -> IO b) -> String -> IO b -> IO b
-genericMain onFile usage onErr = do
+genericMain :: (String -> IO ()) -> String -> IO ()
+genericMain onFile usage = do
     args <- getArgs
     case args of
         ["--help"] -> putStrLn usage >> exitFailure
         [f] -> onFile f
-        _ -> onErr
+        _ -> syserr "Invalid or no arguments provided"
 
 syserr :: String -> IO ()
 syserr msg = do
@@ -36,9 +36,9 @@ getFileAndDirOrFail filename = do
 
 processCodeWithCommand :: Err Text -> FilePath -> String -> (ExitCode -> IO ()) -> IO ()
 processCodeWithCommand (Left msg) _ _ _ = syserr msg
-processCodeWithCommand (Right code) outfile command onFail = do
+processCodeWithCommand (Right code) outfile command onCommandFailure = do
     TIO.writeFile outfile code
     process <- runCommand command
     exitCode <- waitForProcess process
-    unless (exitCode == ExitSuccess) (onFail exitCode)
+    unless (exitCode == ExitSuccess) (onCommandFailure exitCode)
     exitSuccess
