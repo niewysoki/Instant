@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Instant.Llvm.Transpiler where
+module Instant.Llvm.Transpiler (run) where
 
 import Control.Monad.State (StateT, evalStateT, gets, modify)
 import qualified Data.List as L
