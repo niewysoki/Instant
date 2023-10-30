@@ -4,10 +4,12 @@
 
 module Instant.Llvm.Transpiler where
 
-import Control.Monad.State (StateT, gets, modify)
+import Control.Monad.State (StateT, evalStateT, gets, modify)
 import qualified Data.List as L
 import qualified Data.Map as M
-import Data.Text.Lazy.Builder (Builder, fromString)
+import Data.Text (Text)
+import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
 import Instant.Common (Emit (emit))
 import Instant.Grammar.AbsInstant (
     BNFC'Position,
@@ -20,11 +22,12 @@ import Instant.Grammar.AbsInstant (
     Stmt' (..),
  )
 import Instant.Grammar.ErrM (Err)
+import Instant.Grammar.ParInstant (myLexer, pProgram)
 import Instant.Llvm.Instructions (
     BinOp (..),
     CallParam (..),
     Instruction (..),
-    Register,
+    Register (..),
     StaticCode (..),
     nextRegister,
  )
@@ -39,6 +42,12 @@ type family TranspilerResult a where
     TranspilerResult Exp = (CallParam, Builder)
 
 type Transpiler x = StateT TranspilerState Err x
+
+run :: String -> Err Text
+run text = do
+    ast <- pProgram . myLexer $ text
+    code <- evalStateT (transpile ast) State{_registers = M.empty, _first_unused_register = RegNum 0}
+    return $ toStrict $ toLazyText code
 
 class Transp code where
     transpile :: code -> Transpiler (TranspilerResult code)
@@ -73,7 +82,7 @@ instance Transp Exp where
         return (Reg destination, code)
 
 transpileBinOp :: BinOp -> BNFC'Position -> Exp -> Exp -> Transpiler (TranspilerResult Exp)
-transpileBinOp op pos x y = do
+transpileBinOp op _ x y = do
     (xParam, xCode) <- transpile x
     (yParam, yCode) <- transpile y
     destination <- newReg

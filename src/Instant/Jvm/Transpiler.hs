@@ -30,12 +30,6 @@ import Instant.Jvm.Instructions (
     commutative,
  )
 
-run :: String -> String -> Err Text
-run name text = do
-    ast <- pProgram . myLexer $ text
-    code <- evalStateT (transpile ast) M.empty
-    return $ toStrict $ toLazyText $ emit (SCClassHeader name) <> code
-
 type Store = M.Map Ident Loc
 
 type Transpiler x = StateT Store Err x
@@ -47,6 +41,12 @@ type family TranspilerResult a where
 
 class Transp code where
     transpile :: code -> Transpiler (TranspilerResult code)
+
+run :: String -> String -> Err Text
+run name text = do
+    ast <- pProgram . myLexer $ text
+    code <- evalStateT (transpile ast) M.empty
+    return $ toStrict $ toLazyText $ emit (SCClassHeader name) <> code
 
 instance Transp Program where
     transpile (Prog _ stmts) = do
