@@ -1,36 +1,27 @@
 module Main where
 
-import Common (genericMain, getFileAndDirOrFail, syserr)
+import Common (genericMain, getFileAndDirOrFail, processCodeWithCommand, syserr)
 import qualified Instant.Llvm.Transpiler as Transpiler
-import System.Exit (exitFailure, exitSuccess)
+import System.FilePath (replaceExtension)
 
 compileFile :: String -> IO ()
 compileFile filename = do
-    (dir, name) <- getFileAndDirOrFail filename
-
+    _ <- getFileAndDirOrFail filename
+    let llFile = replaceExtension filename ".ll"
+        bcFile = replaceExtension filename ".bc"
+        llvmCommand = "llvm-as -o " ++ bcFile ++ " " ++ llFile
     contents <- readFile filename
-    let maybeLlvmIRCode = Transpiler.run contents
-    case maybeLlvmIRCode of
-        Left msg -> syserr msg
-        Right llvmIRCode -> do
-            exitSuccess
+    let mbCode = Transpiler.run contents
+    processCodeWithCommand mbCode llFile llvmCommand (syserr . ("llvm-as failed with code: " ++) . show)
 
--- TIO.writeFile jasmineFile jasmineCode
--- process <- runCommand jasmineCmd
--- exitCode <- waitForProcess process
--- unless (exitCode == ExitSuccess) (syserr $ "Jasmin failed with code: " ++ show exitCode)
--- exitSuccess
-
-usage :: IO ()
-usage = do
-    putStrLn $
-        unlines
-            [ "Instant LLVM compiler."
-            , "Usage: Call with one of the following argument combinations:"
-            , "  --help         Display this help message."
-            , "  (file)         TODO."
-            ]
-    exitFailure
+usage :: String
+usage =
+    unlines
+        [ "Instant LLVM compiler."
+        , "Usage: Call with one of the following argument combinations:"
+        , "  --help         Display this help message."
+        , "  (file)         Compile content of the input file into .ll and .bc files in the same directory."
+        ]
 
 main :: IO ()
 main = genericMain compileFile usage (syserr "Invalid or no arguments provided")

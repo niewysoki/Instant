@@ -52,8 +52,8 @@ instance Transp Program where
     transpile (Prog _ stmts) = do
         results <- mapM transpile stmts
         locals <- gets M.size
-        let stack = L.foldl' max 0 $ map fst results
-        let code = L.foldl' (<>) (fromString "") $ map snd results
+        let stack = L.foldl' max 0 $ fst <$> results
+            code = L.foldl' (<>) (fromString "") $ snd <$> results
         return $ emit SCDefaultConstructor <> emit (SCMainHeader stack locals) <> code <> emit SCMainFooter
 
 instance Transp Stmt where
@@ -80,7 +80,7 @@ transpileBinOp op left right = do
     (leftStack, leftCode) <- transpile left
     (rightStack, rightCode) <- transpile right
     let stack = max (1 + min leftStack rightStack) (max leftStack rightStack)
-    let opCode = emit (IBinOp op)
+        opCode = emit (IBinOp op)
     if leftStack > rightStack
         then return (stack, leftCode <> rightCode <> opCode)
         else
