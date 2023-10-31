@@ -14,7 +14,7 @@ import Instant.Grammar.AbsInstant (
     BNFC'Position,
     Exp,
     Exp' (..),
-    Ident,
+    Ident (..),
     Program,
     Program' (..),
     Stmt,
@@ -118,4 +118,5 @@ newReg = do
     return reg
 
 noReg :: Ident -> BNFC'Position -> Transpiler (TranspilerResult Exp)
-noReg ident pos = fail $ "Uninitialized variable '" ++ show ident ++ "' at " ++ show pos
+noReg (Ident ident) (Just (row, col)) = fail $ "Uninitialized variable '" ++ show ident ++ "' at " ++ show row ++ ":" ++ show col
+noReg (Ident ident) Nothing = fail $ "Uninitialized variable '" ++ show ident ++ "' at unknown position"
