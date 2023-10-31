@@ -20,7 +20,7 @@ main = genericMain transpileFile usage
     usage =
         unlines
             [ "Instant to LLVM transpiler."
-            , "Usage: Call with one of the following argument combinations:"
+            , "Usage: Call with one of the following argument:"
             , "  --help         Display this help message."
             , "  (file)         Transpile content of the input file into .ll and .bc files in the same directory."
             ]

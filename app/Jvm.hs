@@ -19,7 +19,7 @@ main = genericMain transpileFile usage
     usage =
         unlines
             [ "Instant JVM transpiler."
-            , "Usage: Call with one of the following argument combinations:"
+            , "Usage: Call with one of the following argument:"
             , "  --help         Display this help message."
-            , "  (file)         Transpile content of the file into .j and .class files in the file's directory."
+            , "  (file)         Transpile content of the file into .j and .class files in the same directory."
             ]
